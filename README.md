@@ -55,12 +55,12 @@ EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
 🏗️ Build the Docker Image
 bash
-Copy code
 docker build -t amazon-prime-clone .
+
 ▶️ Run the Container
 bash
-Copy code
 docker run -d -p 8080:80 amazon-prime-clone
+
 Now open 👉 http://localhost:8080
 Your Amazon Prime Clone app will be live! �**�
 
@@ -78,7 +78,6 @@ services:
     container_name: amazon-prime-clone
 🚀 Run the app
 bash
-Copy code
 docker-compose up -d
 Your containerized app will now be running at http://localhost:8080**
 ```
@@ -209,7 +208,6 @@ Your containerized app will now be running at http://localhost:8080**
 
 👤 Rajan Kumar
 
-👤 Vinoth Kumar — Docker & Deployment
 👤 Abhijeet Sinha
 
 👤 Vinoth Kumar — Docker & Deployment
