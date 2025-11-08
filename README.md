@@ -11,27 +11,76 @@ This project is a **front-end clone** built to replicate its core UI and functio
 
 **Live Preview:** [Enjoy the Experience](https://amazonprime-clone.netlify.app/)
 
-## How to get Started 🚀
+---
 
-**There are two methods for getting started with this repo.**
+## ⚙️ Local Setup and Docker Deployment
 
+### 🧠 Local Setup (Test on your system)
 
-#### Familiar with Git ?
+```bash
+# Clone the repository
+git clone https://github.com/vinothdevops87-dotcom/amazon-prime.git
 
-```
-> git clone https://github.com/icyflame21/Amazon-Prime-Clone.git
-> cd Amazon-Prime-Clone
-> npm install
-> npm start
-```
+# Navigate into the project directory
+> cd amazon-prime
 
-#### Not Familiar with Git ?
-download the .zip file.  Extract the contents of the zip file, then open your terminal, change to the project directory, and:
+# Install dependencies
+> npm install --legacy-peer-deps
+> npm install react-is --legacy-peer-deps
 
-```
-> cd Amazon-Prime-Clone
-> npm install
-> npm start
+**# Start the development server**
+npm start
+Once started, open 👉** http://localhost:3000**
+You’ll see your Amazon Prime Clone running locally 🎬
+
+🐳 Docker Deployment
+You can easily containerize and run this project using Docker.
+
+🧾 Dockerfile
+**Dockerfile
+Copy code
+# ---------- Build Stage ----------
+FROM node:18-alpine AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm install --legacy-peer-deps
+COPY . .
+RUN npm run build
+CMD ["npm", "start"]
+
+# ---------- Production Stage ----------
+FROM nginx:alpine
+COPY --from=build /app/build /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+🏗️ Build the Docker Image
+bash
+Copy code
+docker build -t amazon-prime-clone .
+▶️ Run the Container
+bash
+Copy code
+docker run -d -p 8080:80 amazon-prime-clone
+Now open 👉 http://localhost:8080
+Your Amazon Prime Clone app will be live! �**�
+
+**🧰 Docker Compose (Optional)
+You can also use Docker Compose for easier setup and container management.
+
+yaml
+Copy code
+version: "3"
+services:
+  app:
+    build: .
+    ports:
+      - "8080:80"
+    container_name: amazon-prime-clone
+🚀 Run the app
+bash
+Copy code
+docker-compose up -d
+Your containerized app will now be running at http://localhost:8080**
 ```
 
 
@@ -160,6 +209,7 @@ download the .zip file.  Extract the contents of the zip file, then open your te
 
 👤 Rajan Kumar
 
+👤 Vinoth Kumar — Docker & Deployment
 👤 Abhijeet Sinha
 
 👤 Vinoth Kumar — Docker & Deployment
