@@ -23,8 +23,9 @@ A Collaborative project built by a team of 3 executed in 7 days.
 ```
 > git clone https://github.com/icyflame21/Amazon-Prime-Clone.git
 > cd Amazon-Prime-Clone
-> npm install
-> npm start
+> npm install --legacy-peer-deps
+> npm install react-is --legacy-peer-deps
+> npm run start
 ```
 
 #### Not Familiar with Git ?
