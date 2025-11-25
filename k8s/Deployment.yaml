@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: amazon-app-deployment
+  labels:
+    app: amazon-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: amazon-app
+  template:
+    metadata:
+      labels:
+        app: amazon-app
+    spec:
+      containers:
+        - name: amazon-app
+          image: vk2615/amazon:latest
+          ports:
+            - containerPort: 80
