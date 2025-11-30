@@ -7,57 +7,34 @@ pipeline {
         DOCKER_TAG = "${BUILD_NUMBER}"
         REGISTRY_CREDENTIALS = "dockerhub-vk2615"
         SSH_CREDENTIALS = "devopstech-ssh"
-        SONARQUBE_CREDENTIALS = "SonarQube-DevOpsTech"
-        DEPLOY_SERVER = "ubuntu@3.218.118.168"
+        DEPLOY_SERVER = "ubuntu@18.207.129.147"
     }
 
     stages {
+
         stage('Checkout Code') {
             steps {
                 git branch: 'main', url: 'https://github.com/vinothdevops87-dotcom/amazon-prime.git'
             }
         }
 
-        stage('SonarQube Scan') {
-            steps {
-                withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
-                    script {
-                        withSonarQubeEnv("${SONARQUBE_CREDENTIALS}") {
-                            sh '''
-                                sonar-scanner \
-                                -Dsonar.projectKey=amazon-prime \
-                                -Dsonar.sources=. \
-                                -Dsonar.host.url=http://192.168.81.2:9000 \
-                                -Dsonar.login=$SONAR_TOKEN
-                            '''
-                        }
-                    }
-                }
-            }
-        }
-
-        stage('Build Docker Image') {
-            steps {
-                script {
-                    docker.build("${DOCKER_IMAGE}:${DOCKER_TAG}", "--no-cache .")
-                }
-            }
-        }
-
-        stage('Push Docker Image') {
-            steps {
-                script {
-                    docker.withRegistry('', "${REGISTRY_CREDENTIALS}") {
-                        docker.image("${DOCKER_IMAGE}:${DOCKER_TAG}").push()
-                    }
-                }
-            }
-        }
-
-        stage('Test SSH Connection') {
+        stage('Build & Push Docker Image on EC2') {
             steps {
                 sshagent(["${SSH_CREDENTIALS}"]) {
-                    sh 'ssh -o StrictHostKeyChecking=no ${DEPLOY_SERVER} "echo ✅ Connected successfully"'
+                    withCredentials([usernamePassword(credentialsId: "${REGISTRY_CREDENTIALS}", usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                        sh """
+                            ssh -o StrictHostKeyChecking=no ${DEPLOY_SERVER} '
+                                cd /home/ubuntu &&
+                                rm -rf amazon-prime || true &&
+                                git clone https://github.com/vinothdevops87-dotcom/amazon-prime.git &&
+                                cd amazon-prime &&
+                                echo "Logging into Docker Hub..." &&
+                                echo ${PASSWORD} | docker login -u ${USERNAME} --password-stdin &&
+                                docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} . &&
+                                docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
+                            '
+                        """
+                    }
                 }
             }
         }
@@ -65,33 +42,18 @@ pipeline {
         stage('Deploy to Server') {
             steps {
                 sshagent(["${SSH_CREDENTIALS}"]) {
-                    sh '''
-                        ssh -o StrictHostKeyChecking=no ${DEPLOY_SERVER} "
+                    sh """
+                        ssh -o StrictHostKeyChecking=no ${DEPLOY_SERVER} '
                             docker pull ${DOCKER_IMAGE}:${DOCKER_TAG} &&
                             docker stop ${APP_NAME} || true &&
                             docker rm ${APP_NAME} || true &&
                             docker run -d --name ${APP_NAME} -p 8088:80 ${DOCKER_IMAGE}:${DOCKER_TAG} &&
                             docker image prune -f
-                        "
-                    '''
+                        '
+                    """
                 }
             }
         }
-    }
-        stage("slack Notification") {
-            steps {
-                slackSend (
-                    channel: '#devopstech',
-                    color: 'good',
-                    message: "Deployment of *${APP_NAME}* successful! Access it at http://
-                    )
-                           
-    post {
-        success {
-            echo "✅ Deployment successful! Access app at http://3.218.118.168:8088"
-        }
-        failure {
-            echo "❌ Deployment failed. Check Jenkins logs for details."
-        }
+
     }
 }
